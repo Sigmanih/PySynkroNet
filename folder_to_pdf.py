@@ -139,7 +139,7 @@ class PythonProjectToPDF:
                     count += 1
         return count
 
-    def create_pdf(self, project_path, output_pdf="project_documentation.pdf", custom_exclusions=None, progress_callback=None):
+    def create_pdf(self, project_path, output_pdf="project_Snapshot.pdf", custom_exclusions=None, progress_callback=None):
         """Crea il PDF dalla cartella del progetto"""       
         # Applica le esclusioni
         if custom_exclusions:
@@ -286,7 +286,7 @@ class AdvancedPDFProjectManager:
         
         # Variabili principali
         self.project_path = tk.StringVar()
-        self.output_pdf = tk.StringVar(value="project_documentation.pdf")
+        self.output_pdf = tk.StringVar(value="project_Snapshot.pdf")
         self.pdf_to_read = tk.StringVar()
         self.reconstruction_output = tk.StringVar()
         

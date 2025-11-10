@@ -17,7 +17,7 @@ CARATTERISTICHE PRINCIPALI:
 • Supporto per tutti i linguaggi di programmazione e file di testo
 
 TECNOLOGIE:
-• Python 3.8+ • Tkinter • PyPDF2/pdfplumber • Threading
+• Python 3.8+ • Tkinter • PyPDF2 • Threading
 """
 
 import tkinter as tk
@@ -50,7 +50,7 @@ class AdvancedPDFProjectManager:
         
         # Variabili principali
         self.project_path = tk.StringVar()
-        self.output_pdf = tk.StringVar(value="project_documentation.pdf")
+        self.output_pdf = tk.StringVar(value="project_Snapshot.pdf")
         self.pdf_to_read = tk.StringVar()
         self.reconstruction_output = tk.StringVar()
         
@@ -559,7 +559,7 @@ I file e cartelle esclusi non verranno inclusi nel PDF generato.
 • Strutture progetto complesse con sottocartelle multiple
 
 🛠️ Tecnologie:
-• Python 3.8+ • Tkinter • PyPDF2/pdfplumber • Threading
+• Python 3.8+ • Tkinter • PyPDF2 • Threading
 
 🎯 Caratteristiche Uniche:
 • Preservazione perfetta di indentazione e spaziatura originale
