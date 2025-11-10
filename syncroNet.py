@@ -40,7 +40,7 @@ class AdvancedPDFProjectManager:
         self.root.title("🚀 SyncroNet - Advanced PDF Project Manager v3.0")
         self.root.geometry("1100x850")
         self.root.configure(bg="#1e1e1e")
-        self.root.minsize(1000, 700)
+        self.root.minsize(1000, 1000)
         
         # Icona dell'applicazione (se disponibile)
         try:
@@ -601,7 +601,7 @@ I file e cartelle esclusi non verranno inclusi nel PDF generato.
                               relief='flat', width=18)
         suggest_btn.pack(side='left', padx=8)
         
-        update_btn = tk.Button(utils_frame, text="🔄 Controlla Aggiornamenti", 
+        update_btn = tk.Button(utils_frame, text="🔄 Aggiornamenti", 
                              command=self.check_updates,
                              bg='#388a34', fg='#000000',
                              font=('Segoe UI', 9),
