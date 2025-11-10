@@ -1,6 +1,6 @@
 # File: syncroNet.py
 """
-🚀 Advanced PDF Project Manager - SyncroNet
+🚀 SyncroNet - Advanced PDF Project Manager 
 
 DESCRIZIONE:
 Applicazione avanzata per la gestione di progetti tramite PDF. 
@@ -37,7 +37,7 @@ from pdf_to_folder import UniversalPDFToProject
 class AdvancedPDFProjectManager:
     def __init__(self, root):
         self.root = root
-        self.root.title("🚀 Advanced PDF Project Manager v3.0")
+        self.root.title("🚀 SyncroNet - Advanced PDF Project Manager v3.0")
         self.root.geometry("1100x850")
         self.root.configure(bg="#1e1e1e")
         self.root.minsize(1000, 700)
@@ -138,7 +138,7 @@ class AdvancedPDFProjectManager:
         
         # Titolo principale
         title_label = tk.Label(header_frame, 
-                              text="🚀 Advanced PDF Project Manager", 
+                              text="🚀 SyncroNet - Advanced PDF Project Manager", 
                               font=('Segoe UI', 22, 'bold'),
                               bg='#1e1e1e',
                               fg='#569cd6')
@@ -544,7 +544,7 @@ I file e cartelle esclusi non verranno inclusi nel PDF generato.
         info_section.pack(fill='x', pady=(0, 15))
         
         info_text = """
-🚀 Advanced PDF Project Manager - Versione 3.0
+🚀 SyncroNet - Advanced PDF Project Manager - Versione 3.0
 
 ✨ Funzionalità Principali:
 • 📄 Crea PDF da progetti (supporta tutti i tipi di file di testo/codice)
@@ -747,7 +747,7 @@ I file e cartelle esclusi non verranno inclusi nel PDF generato.
                 filetypes=[("Text files", "*.txt"), ("Tutti i file", "*.*")]
             )
             if path:
-                config = f"""# Advanced PDF Project Manager - Configurazione Esclusioni
+                config = f"""# SyncroNet - Advanced PDF Project Manager - Configurazione Esclusioni
 # Esportato il: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
 [DIRS]
@@ -842,13 +842,13 @@ I file e cartelle esclusi non verranno inclusi nel PDF generato.
             messagebox.showwarning("Attenzione", "Cartella di output non valida")
     
     def open_documentation(self):
-        webbrowser.open("https://github.com/your-repo/documentation")
+        webbrowser.open("https://github.com/Sigmanih/PySynkroNet/")
     
     def report_bug(self):
-        webbrowser.open("https://github.com/your-repo/issues")
+        webbrowser.open("https://github.com/Sigmanih/PySynkroNet/issues/new")
     
     def suggest_features(self):
-        webbrowser.open("https://github.com/your-repo/discussions")
+        webbrowser.open("https://github.com/Sigmanih/PySynkroNet/discussions")
     
     def check_updates(self):
         messagebox.showinfo("Aggiornamenti", "🔄 Controllo aggiornamenti in sviluppo")

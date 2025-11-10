@@ -90,38 +90,44 @@ class PythonProjectToPDF:
             # Pulisci ogni linea MA PRESERVA GLI SPAZI ORIGINALI
             clean_line = self.clean_text(line)
             
-            # IMPORTANTE: Non troncare le linee per preservare l'indentazione originale
-            # Aggiungi numero di linea - usa spaziatura fissa per allineamento
-            line_number = f"{i:4d}|"
-            # Calcola la larghezza del numero di linea in caratteri
-            line_number_width = len(line_number)
+            # Gestione righe lunghe: dividi in più righe se necessario
+            max_line_width = 100  # Larghezza massima approssimativa in caratteri
             
-            # Scrivi il numero di linea
-            self.pdf.set_font('Courier', '', 8)
-            self.pdf.cell(line_number_width * 1.5, 4, line_number, ln=0)
-            
-            # Scrivi il contenuto preservando spazi e indentazione
-            self.pdf.set_font('Courier', '', 8)
-            self.pdf.cell(0, 4, clean_line, ln=True)
+            if len(clean_line) <= max_line_width:
+                # Linea normale - scrivi normalmente
+                line_number = f"{i:4d} |"
+                self.pdf.set_font('Courier', '', 8)
+                self.pdf.cell(len(line_number) * 1.5, 4, line_number, ln=0)
+                self.pdf.cell(0, 4, clean_line, ln=True)
+            else:
+                # Linea lunga - dividi in più righe
+                line_number = f"{i:4d}|"
+                indent_spaces = " " * len(line_number)  # Spazi per l'allineamento
+                
+                # Scrivi la prima parte con il numero di linea
+                self.pdf.set_font('Courier', '', 8)
+                self.pdf.cell(len(line_number) * 1.5, 4, line_number, ln=0)
+                self.pdf.cell(0, 4, clean_line[:max_line_width], ln=True)
+                
+                # Dividi il resto della linea in segmenti
+                remaining_text = clean_line[max_line_width:]
+                while remaining_text:
+                    # Prendi il prossimo segmento (leggermente più corto per lo spazio di indentazione)
+                    segment_width = max_line_width - len(line_number) + 3
+                    if len(remaining_text) > segment_width:
+                        segment = remaining_text[:segment_width]
+                        remaining_text = remaining_text[segment_width:]
+                    else:
+                        segment = remaining_text
+                        remaining_text = ""
+                    
+                    # Scrivi il segmento con l'indentazione
+                    self.pdf.set_font('Courier', '', 8)
+                    self.pdf.cell(len(line_number) * 1.5, 4, indent_spaces, ln=0)
+                    self.pdf.cell(0, 4, segment, ln=True)
         
         self.pdf.ln(5)
 
-    def clean_text(self, text):
-        """Pulisce il testo rimuovendo o sostituendo caratteri non compatibili"""
-        try:
-            # Prova a codificare in latin-1 per verificare la compatibilità
-            text.encode('latin-1')
-            return text
-        except UnicodeEncodeError:
-            # Sostituisci i caratteri non compatibili mantenendo la struttura
-            cleaned_text = ""
-            for char in text:
-                try:
-                    char.encode('latin-1')
-                    cleaned_text += char
-                except UnicodeEncodeError:
-                    cleaned_text += '?'
-            return cleaned_text
     def count_files(self, project_path):
         """Conta il numero totale di file che verranno processati"""
         project_path = Path(project_path)
@@ -269,6 +275,8 @@ class PythonProjectToPDF:
         # Salva il PDF
         self.pdf.output(output_pdf)
         return len(processed_files)
+
+
 class AdvancedPDFProjectManager:
     def __init__(self, root):
         self.root = root
@@ -927,13 +935,13 @@ Estensioni principali:
             messagebox.showwarning("Attenzione", "Cartella di output non valida")
     
     def open_documentation(self):
-        webbrowser.open("https://github.com/your-repo/documentation")
+        webbrowser.open("https://github.com/Sigmanih/PySynkroNet/")
     
     def report_bug(self):
-        webbrowser.open("https://github.com/your-repo/issues")
+        webbrowser.open("https://github.com/Sigmanih/PySynkroNet/issues")
     
     def suggest_features(self):
-        webbrowser.open("https://github.com/your-repo/discussions")
+        webbrowser.open("https://github.com/Sigmanih/PySynkroNet/discussions")
     
     def check_updates(self):
         messagebox.showinfo("Aggiornamenti", "🔄 Controllo aggiornamenti in sviluppo")

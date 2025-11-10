@@ -1,76 +1,76 @@
 # PySyncroNet - Advanced PDF Project Manager
 
-## Descrizione del Progetto
+## Project Description
 
-**PySyncroNet** è un software avanzato per la **condivisione e archiviazione sicura di progetti software**. Grazie alla sua architettura innovativa, converte intere cartelle contenenti codice sorgente in un unico **documento PDF leggibile e portabile**, che può successivamente essere **ricostruito integralmente** nella struttura originale.
+**PySyncroNet** is an advanced software solution for **secure sharing and archiving of software projects**. Thanks to its innovative architecture, it can convert entire folders containing source code into a single **readable and portable PDF document**, which can later be **fully reconstructed** back into its original structure.
 
-Il formato PDF non solo garantisce sicurezza e compatibilità, ma offre anche un potente vantaggio: i PDF generati possono essere **utilizzati come input per modelli di Intelligenza Artificiale (IA)**, facilitando analisi semantiche, code review automatizzate e training di modelli NLP sul codice.
-
----
-
-## Funzionalità Principali
-
-* ✨ **Conversione Progetto → PDF**
-  Crea un documento PDF dettagliato da una cartella di progetto, includendo codice sorgente, configurazioni e struttura gerarchica, con numerazione di riga e conservazione dell'indentazione.
-
-* 🔄 **Ricostruzione Progetto → Cartella**
-  Ricrea fedelmente un progetto originale a partire dal PDF generato, mantenendo nomi file, indentazioni e struttura.
-
-* ⚙️ **Gestione Esclusioni Avanzata**
-  Possibilità di escludere directory (es. *venv*, *.git*, *node_modules*), file specifici o estensioni binarie non desiderate.
-
-* 🔍 **Interfaccia Grafica Moderna (GUI)**
-  Basata su **Tkinter**, offre un tema scuro, schede multiple (Creazione PDF, Ricostruzione, Esclusioni, Impostazioni) e un sistema di log interattivo.
-
-* ⏳ **Elaborazioni in Background**
-  Le operazioni pesanti vengono eseguite tramite *threading*, mantenendo la GUI reattiva.
-
-* 🔒 **Sicurezza e IA-Ready**
-  Tutti i file binari vengono esclusi automaticamente, rendendo i PDF non solo sicuri da condividere, ma anche **pronti per essere analizzati da modelli di IA** (LLM, chatbot, code analyzers, ecc.).
+The PDF format not only ensures security and compatibility but also provides a powerful advantage: generated PDFs can be **used as input for Artificial Intelligence (AI) models**, enabling semantic analysis, automated code reviews, and NLP model training on source code.
 
 ---
 
-## Architettura del Software
+## Key Features
+
+* ✨ **Project → PDF Conversion**
+  Generates a detailed PDF document from a project folder, including source code, configuration files, and hierarchical structure, with line numbering and indentation preservation.
+
+* 🔄 **Project Reconstruction → Folder**
+  Faithfully rebuilds the original project from the generated PDF, maintaining filenames, indentation, and structure.
+
+* ⚙️ **Advanced Exclusion Management**
+  Allows exclusion of specific directories (e.g., *venv*, *.git*, *node_modules*), individual files, or unwanted binary extensions.
+
+* 🔍 **Modern Graphical Interface (GUI)**
+  Built with **Tkinter**, featuring a dark theme, multiple tabs (PDF Creation, Reconstruction, Exclusions, Settings), and an interactive logging system.
+
+* ⏳ **Background Processing**
+  Heavy operations run on separate *threads* to keep the GUI responsive.
+
+* 🔒 **Security and AI-Ready**
+  All binary files are automatically excluded, making the PDFs not only safe to share but also **ready for AI-based analysis** (LLMs, chatbots, code analyzers, etc.).
+
+---
+
+## Software Architecture
 
 ### 1. `folder_to_pdf.py`
 
-Gestisce la **conversione del progetto in PDF** con layout fedele e supporto multi-encoding (UTF-8, Latin-1, ecc.).
-Ogni file viene rappresentato nel PDF con numerazione di riga e indentazione preservata.
+Handles **project-to-PDF conversion** with accurate layout and multi-encoding support (UTF-8, Latin-1, etc.). Each file is represented in the PDF with line numbers and preserved indentation.
 
 ### 2. `pdf_to_folder.py`
 
-Gestisce la **ricostruzione del progetto dal PDF** con riconoscimento intelligente delle sezioni di file.
-Supporta sia `PyPDF2` che `pdfplumber` per un parsing accurato e compatibile.
+Handles **project reconstruction from PDF** with intelligent file section recognition. Supports both `PyPDF2` and `pdfplumber` for accurate and compatible parsing.
 
 ### 3. `syncroNet.py`
 
-Il cuore dell'applicazione, con interfaccia GUI multi-tab e funzionalità di gestione progetto, log e configurazioni di esclusione.
+The core of the application, featuring a multi-tab GUI interface, project management tools, logging system, and exclusion settings.
 
 ---
 
-## Tecnologie Utilizzate
+## Technologies Used
 
 * **Python 3.8+**
-* **Tkinter** per l'interfaccia grafica
-* **FPDF** e **PyPDF2** per la gestione dei PDF
-* **Threading**, **pathlib**, **os**, **re** per la logica applicativa
+* **Tkinter** for the GUI
+* **FPDF** and **PyPDF2** for PDF handling
+* **Threading**, **pathlib**, **os**, **re** for application logic
 
 ---
 
-## Installazione
+## Installation
 
-1. Clonare il repository:
+1. Clone the repository:
 
    ```bash
-   git clone https://github.com/tuo-username/PySyncroNet.git
+   git clone https://github.com/your-username/PySyncroNet.git
    cd PySyncroNet
    ```
-2. Installare le dipendenze:
+
+2. Install dependencies:
 
    ```bash
-   pip install fpdf PyPDF2 
+   pip install fpdf PyPDF2
    ```
-3. Avviare l'applicazione:
+
+3. Launch the application:
 
    ```bash
    python syncroNet.py
@@ -78,51 +78,51 @@ Il cuore dell'applicazione, con interfaccia GUI multi-tab e funzionalità di ges
 
 ---
 
-## Utilizzo
+## Usage
 
-### 🔄 Creazione PDF
+### 🔄 PDF Creation
 
-1. Seleziona la cartella del progetto
-2. Imposta (opzionalmente) le esclusioni
-3. Premi **“Crea PDF”** per generare la documentazione del progetto
+1. Select the project folder
+2. (Optionally) set exclusions
+3. Click **"Create PDF"** to generate the project documentation
 
-### 🔄 Ricostruzione da PDF
+### 🔄 Reconstruction from PDF
 
-1. Seleziona un PDF generato in precedenza
-2. Scegli la cartella di output
-3. Premi **“Ricrea Progetto”** per ricostruire la struttura
-
----
-
-## Integrazione con l’Intelligenza Artificiale
-
-L’uso del formato PDF come output principale non è solo una scelta di sicurezza, ma anche strategica per l’**integrazione con strumenti di IA**.
-I PDF generati da PySyncroNet:
-
-* Sono **leggibili dai modelli linguistici** (come GPT o Claude) per analisi automatizzate del codice;
-* Consentono **code review, audit e refactoring assistiti da IA**;
-* Possono essere usati come dataset strutturato per **training o fine-tuning** di modelli basati su codice sorgente.
+1. Select a previously generated PDF
+2. Choose an output folder
+3. Click **"Rebuild Project"** to reconstruct the original structure
 
 ---
 
-## Vantaggi Principali
+## AI Integration
 
-* Eliminazione del rischio di malware o file eseguibili malevoli
-* Compatibilità universale del formato PDF
-* Ottimale per archiviazione, documentazione e AI analysis
-* Ricostruzione fedele e verificabile del progetto originale
+The use of the PDF format as the primary output is not only a security choice but also a strategic one for **AI tool integration**.
+PDFs generated by PySyncroNet:
 
----
-
-## Licenza
-
-Distribuito sotto licenza **MIT**.
-Consulta il file `LICENSE` per dettagli.
+* Are **readable by language models** (such as GPT or Claude) for automated code analysis;
+* Enable **AI-assisted code reviews, audits, and refactoring**;
+* Can be used as structured datasets for **training or fine-tuning** models based on source code.
 
 ---
 
-## Autore
+## Main Advantages
 
-**PySyncroNet** – sviluppato da Sigmanih
-Versione: **3.1 (AI-Enhanced Edition)**
-Data: Novembre 2025
+* Eliminates risks from malware or malicious executables
+* Universal compatibility through the PDF format
+* Ideal for archiving, documentation, and AI analysis
+* Faithful and verifiable project reconstruction
+
+---
+
+## License
+
+Distributed under the **MIT License**.
+See the `LICENSE` file for details.
+
+---
+
+## Author
+
+**PySyncroNet** – developed by Sigmanih
+Version: **3.1 (AI-Enhanced Edition)**
+Date: November 2025

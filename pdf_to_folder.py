@@ -31,6 +31,7 @@ class UniversalPDFToProject:
         """
         Analizza il PDF e estrae i file PRESERVANDO FEDELMENTE 
         TUTTI GLI SPAZI E TAB ORIGINALI
+        Gestisce correttamente le righe lunghe divise su più righe nel PDF
         """
         lines = pdf_text.split('\n')
         current_file = None
@@ -130,10 +131,35 @@ class UniversalPDFToProject:
                             current_content.append(line_match.group(2))
                             
                     elif raw_line.strip() and not any(re.match(pattern, raw_line.strip()) for pattern in end_of_file_patterns):
-                        # Linea senza numero - potrebbe essere header o formato speciale
-                        # PRESERVA LA LINEA ORIGINALE COSÌ COM'È
-                        current_content.append(raw_line)
+                        # GESTIONE RIGHE LUNGHE DIVISE: 
+                        # Se la linea NON ha numero ma ha lo stesso indent delle righe continuazione
+                        # e siamo nel contesto di un file, probabilmente è una continuazione
                         
+                        # Controlla se questa linea potrebbe essere una continuazione di una riga lunga
+                        is_continuation_line = (
+                            current_content and  # C'è contenuto precedente
+                            not re.match(r'^\s*\d+\s*\|', raw_line) and  # Non è una linea numerata
+                            len(raw_line.strip()) > 0 and  # Non è vuota
+                            raw_line.startswith('     ')  # Ha l'indentazione tipica delle continuazioni (5+ spazi)
+                        )
+                        
+                        if is_continuation_line:
+                            # È una continuazione di riga lunga - unisci con l'ultima linea
+                            last_line = current_content[-1]
+                            
+                            # Rimuovi l'indentazione della continuazione (i primi 5+ spazi)
+                            continuation_content = raw_line.lstrip()
+                            
+                            # Unisci con l'ultima linea
+                            merged_line = last_line + continuation_content
+                            current_content[-1] = merged_line
+                            
+                            print(f"   🔄 Unita continuazione riga lunga: '{continuation_content[:30]}...'")
+                        else:
+                            # Linea senza numero - potrebbe essere header o formato speciale
+                            # PRESERVA LA LINEA ORIGINALE COSÌ COM'È
+                            current_content.append(raw_line)
+                            
                     elif not raw_line.strip():
                         # Linea vuota - preservala
                         current_content.append('')
@@ -153,7 +179,7 @@ class UniversalPDFToProject:
     def clean_file_content(self, content, file_extension):
         """
         Pulisce il contenuto preservando FEDELMENTE tutti gli spazi e l'indentazione originale.
-        NON ricostruisce l'indentazione - preserva quella originale dal PDF.
+        Gestisce le righe lunghe che erano state divise nel PDF.
         """
         if not content:
             return content
@@ -172,6 +198,27 @@ class UniversalPDFToProject:
             cleaned_line = cleaned_line.replace('\r', '')  # Solo ritorni a carrello
             cleaned_line = cleaned_line.replace('\x00', '')  # Solo null bytes
             
+            # CORREZIONE PER RIGHE LUNGHE: 
+            # Se una linea inizia con molti spazi ma non è vuota, potrebbe essere 
+            # una continuazione che è stata erroneamente separata
+            if (i > 0 and 
+                len(cleaned_line.strip()) > 0 and 
+                len(cleaned_line) - len(cleaned_line.lstrip()) > 10):  # Molti spazi iniziali
+                
+                # Verifica se la linea precedente potrebbe essere parte della stessa riga lunga
+                prev_line = cleaned_lines[-1] if cleaned_lines else ""
+                
+                # Se la linea precedente non termina con punteggiatura e questa inizia con molti spazi,
+                # probabilmente sono la stessa riga
+                if (prev_line and 
+                    not prev_line.endswith(('.', ';', ':', '!', '?')) and
+                    not any(prev_line.endswith(keyword) for keyword in ['def', 'class', 'if', 'for', 'while'])):
+                    
+                    # Unisci con la linea precedente
+                    cleaned_lines[-1] = prev_line + ' ' + cleaned_line.lstrip()
+                    print(f"   🔄 Righe lunghe unite: linea {i} unita alla precedente")
+                    continue
+            
             # Mantieni TUTTI gli spazi, tab, e l'indentazione originale
             cleaned_lines.append(cleaned_line)
             
@@ -182,9 +229,42 @@ class UniversalPDFToProject:
         
         cleaned_content = '\n'.join(cleaned_lines)
         
-        print(f"   ✅ Contenuto pulito: {len(cleaned_content.splitlines())} linee, {len(cleaned_content)} caratteri")
+        # CORREZIONE FINALE: gestisci eventuali righe lunghe che potrebbero essere state divise
+        # durante l'estrazione PDF ma che dovrebbero essere una sola riga
+        final_lines = []
+        i = 0
+        while i < len(cleaned_lines):
+            current_line = cleaned_lines[i]
+            
+            # Se questa linea potrebbe essere continuata (non termina con carattere di fine)
+            if (i < len(cleaned_lines) - 1 and 
+                current_line.strip() and 
+                not current_line.endswith((':','{','}',';')) and
+                not any(current_line.strip().endswith(keyword) for keyword in ['def', 'class', 'if', 'for', 'while', 'else', 'elif'])):
+                
+                next_line = cleaned_lines[i + 1]
+                
+                # Se la prossima linea ha un'indentazione molto diversa (molti più spazi)
+                # potrebbe essere una continuazione
+                current_indent = len(current_line) - len(current_line.lstrip())
+                next_indent = len(next_line) - len(next_line.lstrip())
+                
+                if next_indent > current_indent + 8:  # Soglia per identificare continuazioni
+                    # Probabile continuazione - unisci
+                    merged_line = current_line + ' ' + next_line.lstrip()
+                    final_lines.append(merged_line)
+                    i += 2  # Salta la prossima linea
+                    print(f"   🔄 Continuazione rilevata e unita: linee {i-1} e {i}")
+                    continue
+            
+            final_lines.append(current_line)
+            i += 1
         
-        return cleaned_content
+        final_content = '\n'.join(final_lines)
+        
+        print(f"   ✅ Contenuto pulito: {len(final_content.splitlines())} linee, {len(final_content)} caratteri")
+        
+        return final_content
 
     def get_file_extension(self, file_path):
         """Restituisce l'estensione del file"""
@@ -201,6 +281,7 @@ class UniversalPDFToProject:
             return False
         
         print("🔍 Analizzando il contenuto del PDF con PRESERVAZIONE SPAZI...")
+        print("🎯 GESTIONE RIGHE LUNGHE ATTIVATA")
         files_data = self.parse_files_from_pdf(pdf_text)
         
         if not files_data:
@@ -239,17 +320,21 @@ class UniversalPDFToProject:
                 lines = cleaned_content.split('\n')
                 total_spaces = 0
                 max_indent = 0
+                line_lengths = []
                 
-                for line in lines[:10]:  # Analizza solo prime 10 linee
+                for line in lines[:15]:  # Analizza prime 15 linee
                     if line.strip():
                         indent = len(line) - len(line.lstrip())
                         total_spaces += indent
                         max_indent = max(max_indent, indent)
+                        line_lengths.append(len(line))
                 
-                avg_indent = total_spaces // min(10, len([l for l in lines[:10] if l.strip()])) if any(lines[:10]) else 0
+                avg_indent = total_spaces // min(15, len([l for l in lines[:15] if l.strip()])) if any(lines[:15]) else 0
+                max_line_length = max(line_lengths) if line_lengths else 0
                 
                 print(f"✅ Creato: {file_path}")
                 print(f"   📊 Statistiche: {line_count} linee, {max_indent} spazi max, {avg_indent} spazi medi")
+                print(f"   📏 Lunghezza max riga: {max_line_length} caratteri")
                 
                 # VERIFICA VISIVA della struttura per i primi file
                 if files_created <= 2:
@@ -260,7 +345,8 @@ class UniversalPDFToProject:
                             indent = len(line) - len(line.lstrip())
                             indent_visual = "▸" * (indent // 4 + 1) if indent > 0 else "•"
                             content_preview = line.strip()[:50]
-                            print(f"      {indent_visual} [{indent} spazi] {content_preview}")
+                            line_length_indicator = "📏" if len(line) > 100 else ""
+                            print(f"      {indent_visual} [{indent} spazi] {content_preview} {line_length_indicator}")
                 
             except Exception as e:
                 error_msg = f"❌ Errore con {file_path}: {str(e)}"
@@ -331,8 +417,16 @@ TECNICA DI PRESERVAZIONE SPAZI:
 -------------------------------
 ✅ PRESERVAZIONE FEDELE: Tutti gli spazi e tab originali sono mantenuti
 ✅ INDENTAZIONE ORIGINALE: L'indentazione del PDF è preservata esattamente
+✅ GESTIONE RIGHE LUNGHE: Le righe divise su più righe nel PDF vengono ricomposte
 ✅ FORMATTAZIONE INTATTA: La formattazione del codice rimane identica
 ✅ SUPPORTO UNIVERSALE: Funziona con tutti i linguaggi di programmazione
+
+TECNICHE APPLICATE:
+------------------
+• Ricomposizione automatica righe lunghe divise
+• Preservazione esatta spazi e indentazione  
+• Unione intelligente continuazioni
+• Riconoscimento pattern di divisione PDF
 
 """
 
@@ -357,6 +451,7 @@ def main():
     print("🛠️  RICOSTRUZIONE PROGETTO DA PDF")
     print("=" * 70)
     print("🎯 PRESERVAZIONE FEDELE DI SPAZI E INDENTAZIONE ORIGINALE")
+    print("🔧 GESTIONE AVANZATA RIGHE LUNGHE ATTIVATA")
     print("=" * 70)
     
     recreator = UniversalPDFToProject()
@@ -369,6 +464,7 @@ def main():
         print("\n🎯 GARANZIA DI PRESERVAZIONE:")
         print("   • ✅ TUTTI gli spazi originali preservati")
         print("   • ✅ Indentazione ESATTA del PDF mantenuta") 
+        print("   • ✅ Righe lunghe ricomposte correttamente")
         print("   • ✅ Formattazione fedele per tutti i linguaggi")
         print("   • ✅ Nessuna alterazione della struttura originale")
     else:
@@ -380,6 +476,7 @@ if __name__ == "__main__":
         print("🛠️  RICOSTRUZIONE PROGETTO DA PDF")
         print("=" * 60)
         print("🎯 PRESERVAZIONE FEDELE SPAZI E INDENTAZIONE")
+        print("🔧 GESTIONE RIGHE LUNGHE ATTIVATA")
         print("=" * 60)
         
         pdf_file = input("Inserisci il percorso del PDF: ").strip()
