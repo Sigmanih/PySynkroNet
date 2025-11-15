@@ -1,7 +1,8 @@
 """
 Scheda per la creazione di PDF da progetti
 """
-
+import os
+from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, filedialog, scrolledtext
 from pathlib import Path
@@ -13,8 +14,9 @@ class PDFCreatorTab:
     
     def __init__(self, parent):
         self.parent = parent
-        self.title = "📄 Crea PDF da Progetto"
+        self.title = "? Crea PDF da Progetto"
         self.pdf_converter = PDFConverter()
+        self.include_excluded_files = tk.BooleanVar(value=False)  # Nuovo flag
         self._create_tab()
     
     def _create_tab(self):
@@ -72,6 +74,25 @@ class PDFCreatorTab:
     
     def _create_output_section(self):
         """Crea la sezione output PDF"""
+        options_section = ttk.LabelFrame(self.frame, text='🔧 Opzioni', style='Section.TLabelframe')
+        options_section.pack(fill='x', pady=(0, 15), padx=15)
+        
+        options_frame = tk.Frame(options_section, bg='#1e1e1e')
+        options_frame.pack(fill='x', padx=12, pady=8)
+        
+        # Checkbutton per includere file esclusi
+        include_excluded_cb = tk.Checkbutton(
+            options_frame,
+            text="Includi file esclusi nel PDF",
+            variable=self.include_excluded_files,
+            font=('Segoe UI', 9),
+            bg='#1e1e1e',
+            fg='#d4d4d4',
+            selectcolor='#3c3c3c',
+            activebackground='#1e1e1e',
+            activeforeground='#d4d4d4'
+        )
+        include_excluded_cb.pack(side='left', padx=10)
         output_section = ttk.LabelFrame(self.frame, text="📄 Output PDF", style='Section.TLabelframe')
         output_section.pack(fill='x', pady=(0, 15), padx=15)
         output_section.columnconfigure(1, weight=1)
@@ -114,6 +135,7 @@ class PDFCreatorTab:
         )
         browse_output_btn.grid(row=0, column=2, padx=8, pady=8)
     
+        
     def _create_progress_section(self):
         """Crea la sezione progresso"""
         progress_section = ttk.LabelFrame(self.frame, text="📊 Progresso", style='Section.TLabelframe')
@@ -298,31 +320,42 @@ Estensioni principali:
     def _create_pdf_thread(self):
         """Thread per la creazione del PDF"""
         try:
-            self._log_message("🔄 Inizio creazione PDF...")
-            self._log_message(f"📁 Progetto: {self.project_path.get()}")
-            self._log_message(f"📄 Output: {self.output_pdf.get()}")
+            self._log_message('? Inizio creazione PDF...')
+            self._log_message(f"? Progetto: {self.project_path.get()}")
+            self._log_message(f"? Output: {self.output_pdf.get()}")
+            self._log_message(f"? Includi file esclusi: {self.include_excluded_files.get()}")
             
-            # Prepara le esclusioni (qui puoi aggiungere la logica per le esclusioni personalizzate)
+            # Prepara le esclusioni
             custom_exclusions = {}
             
             # Reset barra di progresso
             self._update_progress(0, 100)
             
-            # Crea il PDF
-            files_processed = self.pdf_converter.create_project_pdf(
+            # Crea il PDF con il flag per includere file esclusi
+            files_processed, pdf_path = self.pdf_converter.create_project_pdf(
                 self.project_path.get(),
                 self.output_pdf.get(),
                 custom_exclusions,
-                self._update_progress
+                self._update_progress,
+                include_excluded=self.include_excluded_files.get(),
+                open_after_creation=True  # Apri automaticamente dopo la creazione
             )
             
-            self._log_message(f"✅ PDF creato con successo! File processati: {files_processed}")
-            tk.messagebox.showinfo("Successo", f"PDF creato con successo!\nFile processati: {files_processed}")
+            self._log_message(f"? PDF creato con successo! File processati: {files_processed}")
+            self._log_message(f"? PDF salvato in: {pdf_path}")
+            self._log_message(f"? PDF aperto automaticamente")
             
+            tk.messagebox.showinfo('Successo', 
+                                f"PDF creato con successo!\n"
+                                f"File processati: {files_processed}\n"
+                                f"PDF salvato in: {pdf_path}\n\n"
+                                f"Il PDF è stato aperto automaticamente.")
+        
         except Exception as e:
-            error_msg = f"❌ Errore durante la creazione del PDF: {str(e)}"
+            error_msg = f"? Errore durante la creazione del PDF: {str(e)}"
             self._log_message(error_msg)
             tk.messagebox.showerror("Errore", f"Errore durante la creazione del PDF:\n{str(e)}")
+        
         finally:
             self.create_pdf_btn.config(state='normal', bg='#388a34')
     

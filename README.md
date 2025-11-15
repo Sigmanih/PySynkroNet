@@ -60,17 +60,22 @@ The core of the application, featuring a multi-tab GUI interface, project manage
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/your-username/PySyncroNet.git
+   git clone https://github.com/Sigmanih/PySyncroNet.git
    cd PySyncroNet
    ```
+2. Use virtual environment [venv] (optional)
+   ```bash
+    python -m venv venv
+    .\venv\Scripts\activate
+   ```te
 
-2. Install dependencies:
+3. Install dependencies:
 
    ```bash
    pip install fpdf PyPDF2
    ```
 
-3. Launch the application:
+4. Launch the application:
 
    ```bash
    python syncroNet.py

@@ -245,10 +245,17 @@ class ProjectRecreatorTab:
         )
         self.recreate_btn.pack(side='right', padx=5)
     
+    # Modifica _browse_pdf per partire dalla cartella Saved
     def _browse_pdf(self):
         """Apri dialogo per selezione PDF"""
+        # Usa la cartella Saved come directory iniziale
+        initial_dir = "Saved"
+        if not os.path.exists(initial_dir):
+            os.makedirs(initial_dir)
+        
         path = filedialog.askopenfilename(
-            title="📄 Seleziona PDF",
+            title="? Seleziona PDF",
+            initialdir=initial_dir,
             filetypes=[("PDF files", "*.pdf"), ("Tutti i file", "*.*")]
         )
         if path:

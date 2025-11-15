@@ -62,15 +62,20 @@ Il cuore dell'applicazione, con interfaccia GUI multi-tab e funzionalità di ges
 1. Clonare il repository:
 
    ```bash
-   git clone https://github.com/tuo-username/PySyncroNet.git
+   git clone https://github.com/Sigmanih/PySyncroNet.git
    cd PySyncroNet
    ```
-2. Installare le dipendenze:
+2. Installare ed avviare un virtual environment [venv] (facoltativo) 
+   ```bash
+    python -m venv venv
+    .\venv\Scripts\activate
+   ```
+3. Installare le dipendenze:
 
    ```bash
    pip install fpdf PyPDF2 
    ```
-3. Avviare l'applicazione:
+4. Avviare l'applicazione:
 
    ```bash
    python syncroNet.py
