@@ -31,10 +31,8 @@ class ExclusionsTab:
         desc_section = ttk.LabelFrame(self.frame, text="ℹ️ Informazioni Esclusioni", style='Section.TLabelframe')
         desc_section.pack(fill='x', pady=(0, 15), padx=15)
         
-        desc_text = """
-Queste esclusioni vengono applicate automaticamente quando crei un PDF da un progetto.
+        desc_text = """Queste esclusioni vengono applicate automaticamente quando crei un PDF da un progetto.
 I file e cartelle esclusi non verranno inclusi nel PDF generato.
-
 📁 Cartelle: Directory intere da escludere (es: venv, node_modules)
 📄 File: Nomi specifici di file da escludere (es: .env, config.py)
 🔤 Estensioni: Tipi di file da escludere per estensione (es: .jpg, .exe)
@@ -70,7 +68,7 @@ Separare i valori con virgole. Usa * per i pattern (es: *.tmp)
         # Area di testo per le cartelle
         self.dirs_text = scrolledtext.ScrolledText(
             dirs_section,
-            height=4,
+            height=6,
             width=90,
             font=('Consolas', 9),
             bg='#1e1e1e',
@@ -101,7 +99,7 @@ Separare i valori con virgole. Usa * per i pattern (es: *.tmp)
         # Area di testo per i file
         self.files_text = scrolledtext.ScrolledText(
             files_section,
-            height=4,
+            height=6,
             width=90,
             font=('Consolas', 9),
             bg='#1e1e1e',
@@ -132,7 +130,7 @@ Separare i valori con virgole. Usa * per i pattern (es: *.tmp)
         # Area di testo per le estensioni
         self.extensions_text = scrolledtext.ScrolledText(
             extensions_section,
-            height=4,
+            height=10,
             width=90,
             font=('Consolas', 9),
             bg='#1e1e1e',
@@ -159,7 +157,7 @@ Separare i valori con virgole. Usa * per i pattern (es: *.tmp)
             fg='#000000',
             font=('Segoe UI', 9, 'bold'),
             relief='flat',
-            width=15
+            width=20
         )
         save_btn.pack(side='left', padx=5)
         
@@ -171,7 +169,7 @@ Separare i valori con virgole. Usa * per i pattern (es: *.tmp)
             bg='#ce9178',
             fg='#000000',
             relief='flat',
-            width=15
+            width=20
         )
         reset_btn.pack(side='left', padx=5)
         
@@ -183,7 +181,7 @@ Separare i valori con virgole. Usa * per i pattern (es: *.tmp)
             bg='#569cd6',
             fg='#000000',
             relief='flat',
-            width=18
+            width=20
         )
         export_btn.pack(side='left', padx=5)
         
@@ -195,7 +193,7 @@ Separare i valori con virgole. Usa * per i pattern (es: *.tmp)
             bg='#9cdcfe',
             fg='#000000',
             relief='flat',
-            width=18
+            width=20
         )
         import_btn.pack(side='left', padx=5)
     

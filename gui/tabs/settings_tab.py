@@ -130,12 +130,10 @@ class SettingsTab:
         
         about_text = f"""
 {APP_CONFIG['name']}
-
 👤 Sviluppatore: {APP_CONFIG['author']}
 🚀 Versione: {APP_CONFIG['version']}
-📅 Data: Novembre 2025
-
 🔗 Repository: {APP_CONFIG['repository']}
+📅 Data: Novembre 2025
 
 ⚖️ Licenza: MIT License
 📄 Consulta il file LICENSE per i dettagli.

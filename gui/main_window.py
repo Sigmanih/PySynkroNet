@@ -10,6 +10,7 @@ from gui.tabs.exclusions_tab import ExclusionsTab
 from gui.tabs.settings_tab import SettingsTab
 from gui.styles import setup_styles
 from core.config import APP_CONFIG
+from PIL import Image, ImageTk, ImageDraw
 
 class MainWindow:
     """Finestra principale dell'applicazione"""
@@ -40,34 +41,64 @@ class MainWindow:
         self._create_notebook()
         self._create_status_bar()
     
+
     def _create_header(self):
-        """Crea l'header dell'applicazione"""
         header_frame = tk.Frame(self.root, bg='#1e1e1e')
         header_frame.pack(fill='x', padx=20, pady=15)
+
+        # Carica e ridimensiona il logo
+        img = Image.open("./saved/syncronet_logo.png")
+        img = img.resize((96, 96), Image.LANCZOS)
+        self.logo_img = ImageTk.PhotoImage(img)
         
-        # Titolo principale
+        # Maschera circolare
+        mask = Image.new("L", (96, 96), 0)
+        draw = ImageDraw.Draw(mask)
+        draw.ellipse((0, 0, 96, 96), fill=255)
+
+        # Applica la maschera all'immagine
+        img.putalpha(mask)
+
+        # --- FRAME ORIZZONTALE: LOGO + TESTI ---
+        main_row = tk.Frame(header_frame, bg='#1e1e1e')
+        main_row.pack(anchor="center")
+
+        # Converti per Tkinter
+        self.logo_img = ImageTk.PhotoImage(img)
+
+        # Logo a sinistra
+        logo_label = tk.Label(main_row, image=self.logo_img, bg='#1e1e1e')
+        logo_label.pack(side="left", padx=(0, 15))
+
+        # --- SUB-HEADER A DESTRA DEL LOGO (TITOLO + SOTTOTITOLO) ---
+        text_column = tk.Frame(main_row, bg='#1e1e1e')
+        text_column.pack(side="left", anchor="w")
+
+        # Titolo
         title_label = tk.Label(
-            header_frame,
-            text="🔄 SyncroNet - Advanced PDF Project Manager",
+            text_column,
+            text="SyncroNet - Advanced PDF Project Manager",
             font=('Segoe UI', 22, 'bold'),
             bg='#1e1e1e',
             fg='#569cd6'
         )
-        title_label.pack(pady=(0, 5))
-        
+        title_label.pack(anchor="w")
+
         # Sottotitolo
         subtitle_label = tk.Label(
-            header_frame,
+            text_column,
             text="Converti progetti in PDF e ricostruisci progetti da PDF • Preservazione perfetta dell'indentazione",
             font=('Segoe UI', 11),
             bg='#1e1e1e',
             fg='#9cdcfe'
         )
-        subtitle_label.pack(pady=(0, 10))
-        
+        subtitle_label.pack(anchor="w", pady=(5, 0))
+
         # Separatore
         separator = ttk.Separator(self.root, orient='horizontal')
         separator.pack(fill='x', padx=20, pady=5)
+
+
     
     def _create_notebook(self):
         """Crea il notebook con le schede"""

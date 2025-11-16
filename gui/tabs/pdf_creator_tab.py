@@ -14,7 +14,7 @@ class PDFCreatorTab:
     
     def __init__(self, parent):
         self.parent = parent
-        self.title = "? Crea PDF da Progetto"
+        self.title = "📝 Crea PDF da Progetto"
         self.pdf_converter = PDFConverter()
         self.include_excluded_files = tk.BooleanVar(value=False)  # Nuovo flag
         self._create_tab()
@@ -83,7 +83,7 @@ class PDFCreatorTab:
         # Checkbutton per includere file esclusi
         include_excluded_cb = tk.Checkbutton(
             options_frame,
-            text="Includi file esclusi nel PDF",
+            text="Inserisci dettagli files esclusi nel pdf",
             variable=self.include_excluded_files,
             font=('Segoe UI', 9),
             bg='#1e1e1e',
@@ -108,7 +108,7 @@ class PDFCreatorTab:
         output_label.grid(row=0, column=0, sticky='w', pady=12, padx=12)
         
         # Entry per l'output
-        self.output_pdf = tk.StringVar(value=".\saved\project_Snapshot.pdf")
+        self.output_pdf = tk.StringVar(value=".\\saved\\project_Snapshot.pdf")
         output_entry = tk.Entry(
             output_section,
             textvariable=self.output_pdf,
@@ -321,10 +321,11 @@ Estensioni principali:
     def _create_pdf_thread(self):
         """Thread per la creazione del PDF"""
         try:
-            self._log_message('? Inizio creazione PDF...')
-            self._log_message(f"? Progetto: {self.project_path.get()}")
-            self._log_message(f"? Output: {self.output_pdf.get()}")
-            self._log_message(f"? Includi file esclusi: {self.include_excluded_files.get()}")
+            self._log_message("🚀 Inizio creazione PDF...")
+            self._log_message(f"📁 Progetto: {self.project_path.get()}")
+            self._log_message(f"📄 Output: {self.output_pdf.get()}")
+            self._log_message(f"⚙️ Includi file esclusi: {self.include_excluded_files.get()}")
+
             
             # Prepara le esclusioni
             custom_exclusions = {}
@@ -342,9 +343,9 @@ Estensioni principali:
                 open_after_creation=True  # Apri automaticamente dopo la creazione
             )
             
-            self._log_message(f"? PDF creato con successo! File processati: {files_processed}")
-            self._log_message(f"? PDF salvato in: {pdf_path}")
-            self._log_message(f"? PDF aperto automaticamente")
+            self._log_message(f"✅ PDF creato con successo! File processati: {files_processed}")
+            self._log_message(f"📕 PDF salvato in: {pdf_path}")
+            self._log_message("🔍 PDF aperto automaticamente")
             
             tk.messagebox.showinfo('Successo', 
                                 f"PDF creato con successo!\n"

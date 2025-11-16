@@ -38,7 +38,7 @@ class ProjectRecreator:
         """
         Analizza il PDF e estrae i file PRESERVANDO FEDELMENTE 
         TUTTI GLI SPAZI E TAB ORIGINALI
-        Gestisce correttamente le righe lunghe divise su più righe nel PDF
+        unisce senza spazi indesiderati
         """
         lines = pdf_text.split('\n')
         current_file = None
@@ -133,32 +133,18 @@ class ProjectRecreator:
                             current_content.append(line_match.group(2))
                             
                     elif raw_line.strip() and not any(re.match(pattern, raw_line.strip()) for pattern in end_of_file_patterns):
-                        # GESTIONE RIGHE LUNGHE DIVISE MIGLIORATA
-                        is_continuation_line = (
-                            current_content and
-                            not re.match(r'^\s*\d+\s*\|', raw_line) and
-                            len(raw_line.strip()) > 0 and
-                            # Identifica continuazioni per indentazione consistente
-                            (raw_line.startswith('     ') or 
-                             (len(current_content) > 0 and 
-                              len(raw_line) - len(raw_line.lstrip()) > len(current_content[-1]) - len(current_content[-1].lstrip()) + 4))
-                        )
+                        #  Unisci SENZA SPAZI quando appropriato
                         
-                        if is_continuation_line:
-                            # È una continuazione di riga lunga - unisci con l'ultima linea
+                        if current_content:
+                            # Analizza il contesto per decidere come unire
                             last_line = current_content[-1]
-                            
-                            # Preserva gli spazi della continuazione ma unisci intelligentemente
-                            continuation_content = raw_line.lstrip()
-                            
-                            # Unisci mantenendo la logica del linguaggio
-                            merged_line = self._merge_continuation_line(last_line, continuation_content)
+                            merged_line = self._smart_merge_lines(last_line, raw_line)
                             current_content[-1] = merged_line
                             
                             if len(current_content) <= 3:
-                                print(f"   🔄 Unita continuazione: '{continuation_content[:30]}...'")
+                                print(f"   🔄 Unita: '{raw_line[:30]}...'")
                         else:
-                            # Linea senza numero - preserva così com'è
+                            # Prima riga del file senza numero - aggiungi normalmente
                             current_content.append(raw_line)
                             
                     elif not raw_line.strip():
@@ -177,25 +163,51 @@ class ProjectRecreator:
         print(f"✅ Parsing completato. Trovati {len(self.files_data)} file")
         return self.files_data
 
-    def _merge_continuation_line(self, last_line, continuation):
+    def _smart_merge_lines(self, last_line, continuation):
         """
-        Unisce intelligentemente una linea di continuazione preservando la semantica del codice
+        Unisce due linee in modo INTELLIGENTE senza spazi indesiderati
         """
-        # Se l'ultima linea termina con operatore, unisci direttamente
-        if last_line.rstrip().endswith(('\\', '+', '-', '*', '/', '=', '&', '|', ',')):
-            return last_line.rstrip() + ' ' + continuation.lstrip()
+        last_stripped = last_line.rstrip()
+        continuation_stripped = continuation.lstrip()
         
-        # Se l'ultima linea è una stringa, unisci senza spazio
-        if last_line.count('"') % 2 == 1 or last_line.count("'") % 2 == 1:
-            return last_line + continuation.lstrip()
+        # CASO 1: Se l'ultima linea termina con trattino basso (_), unisci SENZA SPAZIO
+        # Questo corregge problemi come "end_of_file_ patterns" -> "end_of_file_patterns"
+        if last_stripped.endswith('_'):
+            return last_line.rstrip() + continuation_stripped
         
-        # Altrimenti unisci con spazio
-        return last_line + ' ' + continuation.lstrip()
+        # CASO 2: Se l'ultima linea termina con backslash, rimuovilo e unisci CON SPAZIO
+        if last_stripped.endswith('\\'):
+            return last_line.rstrip()[:-1] + ' ' + continuation_stripped
+        
+        # CASO 3: Se l'ultima linea termina con operatore, unisci CON SPAZIO
+        if last_stripped.endswith(('+', '-', '*', '/', '=', '&', '|', ',')):
+            return last_line.rstrip() + ' ' + continuation_stripped
+            
+        # CASO 4: Se la continuazione inizia con operatore di chiusura, unisci SENZA SPAZIO
+        if continuation_stripped.startswith((')', ']', '}', '.', ',', ';', ':')):
+            return last_line.rstrip() + continuation_stripped
+        
+        # CASO 5: Se l'ultima linea termina con carattere di apertura, unisci SENZA SPAZIO
+        if last_stripped.endswith(('(', '[', '{')):
+            return last_line.rstrip() + continuation_stripped
+            
+        # CASO 6: Se l'ultima linea è una stringa non chiusa, unisci SENZA SPAZIO
+        if last_stripped.count('"') % 2 == 1 or last_stripped.count("'") % 2 == 1:
+            return last_line + continuation_stripped
+        
+        # CASO 7: Analizza il contenuto per identificare parole divise
+        # Se l'ultima linea termina con lettera e la continuazione inizia con lettera, unisci SENZA SPAZIO
+        if (last_stripped and last_stripped[-1].isalpha() and 
+            continuation_stripped and continuation_stripped[0].isalpha()):
+            return last_line.rstrip() + continuation_stripped
+            
+        # CASO DEFAULT: unisci CON SPAZIO
+        return last_line.rstrip() + ' ' + continuation_stripped
 
     def clean_file_content(self, content, file_path):
         """
         Pulisce il contenuto preservando FEDELMENTE tutti gli spazi e l'indentazione originale.
-        Versione migliorata con gestione avanzata delle righe lunghe.
+        Versione SEMPLIFICATA: rimuove solo caratteri di controllo
         """
         if not content:
             return content
@@ -216,9 +228,6 @@ class ProjectRecreator:
             cleaned_line = cleaned_line.replace('\x00', '')
             cleaned_line = cleaned_line.replace('\x0c', '')  # Form feed
             
-            # RICOSTRUZIONE INDENTAZIONE: preserva TUTTI gli spazi originali
-            # Non alterare l'indentazione in alcun modo
-            
             cleaned_lines.append(cleaned_line)
             
             # DEBUG per prime linee
@@ -226,116 +235,11 @@ class ProjectRecreator:
                 leading_spaces = len(cleaned_line) - len(cleaned_line.lstrip())
                 print(f"   🔍 Linea {i+1}: {leading_spaces} spazi | '{cleaned_line[:50]}...'")
         
-        # FASE 1: Correzione righe lunghe divise
-        merged_lines = self._fix_divided_lines(cleaned_lines, file_path)
-        
-        # FASE 2: Verifica e correzione finale
-        final_lines = self._final_cleanup(merged_lines, file_path)
-        
-        final_content = '\n'.join(final_lines)
+        final_content = '\n'.join(cleaned_lines)
         
         print(f"   ✅ Contenuto pulito: {len(final_content.splitlines())} linee, {len(final_content)} caratteri")
         
         return final_content
-
-    def _fix_divided_lines(self, lines, file_path):
-        """
-        Corregge le righe che sono state divise ingiustamente durante l'estrazione PDF
-        """
-        if not lines:
-            return lines
-        
-        merged_lines = []
-        i = 0
-        
-        while i < len(lines):
-            current_line = lines[i]
-            
-            if i < len(lines) - 1:
-                next_line = lines[i + 1]
-                
-                # CONTROLLO 1: Se la linea corrente potrebbe essere continuata
-                should_merge = self._should_merge_lines(current_line, next_line, file_path)
-                
-                if should_merge:
-                    # Unisci le linee preservando la formattazione
-                    merged_line = self._merge_lines_properly(current_line, next_line)
-                    merged_lines.append(merged_line)
-                    i += 2
-                    print(f"   🔄 Righe {i-1}-{i} unite: '{merged_line[:60]}...'")
-                    continue
-            
-            merged_lines.append(current_line)
-            i += 1
-        
-        return merged_lines
-
-    def _should_merge_lines(self, current_line, next_line, file_path):
-        """
-        Determina se due linee dovrebbero essere unite
-        """
-        current_stripped = current_line.strip()
-        next_stripped = next_line.strip()
-        
-        if not current_stripped or not next_stripped:
-            return False
-        
-        # Se la linea corrente termina con backslash (continuazione esplicita)
-        if current_stripped.endswith('\\'):
-            return True
-        
-        # Se la prossima linea ha un'indentazione molto maggiore
-        current_indent = len(current_line) - len(current_line.lstrip())
-        next_indent = len(next_line) - len(next_line.lstrip())
-        
-        if next_indent > current_indent + 10:
-            return True
-        
-        # Se la linea corrente non termina con carattere di fine statement
-        if (not current_stripped.endswith((':', ';', '{', '}')) and
-            not any(current_stripped.endswith(keyword) for keyword in 
-                   ['def', 'class', 'if', 'for', 'while', 'else', 'elif', 'try', 'except'])):
-            
-            # Controlla se è una continuazione logica
-            if (next_indent > current_indent and 
-                not next_stripped.startswith(('#', '//', '/*'))):
-                return True
-        
-        return False
-
-    def _merge_lines_properly(self, line1, line2):
-        """
-        Unisce due linee preservando la formattazione corretta
-        """
-        stripped1 = line1.rstrip()
-        stripped2 = line2.lstrip()
-        
-        # Se line1 termina con backslash, rimuovilo e unisci
-        if stripped1.endswith('\\'):
-            return stripped1[:-1].rstrip() + ' ' + stripped2
-        
-        # Se line1 è una stringa non chiusa, unisci direttamente
-        if stripped1.count('"') % 2 == 1 or stripped1.count("'") % 2 == 1:
-            return line1 + stripped2
-        
-        # Altrimenti unisci con spazio
-        return line1 + ' ' + stripped2
-
-    def _final_cleanup(self, lines, file_path):
-        """
-        Pulizia finale e verifica della consistenza
-        """
-        final_lines = []
-        
-        for i, line in enumerate(lines):
-            # Verifica che la linea non sia troppo lunga (potenziale errore di merge)
-            if len(line) > 500 and i > 0:
-                print(f"   ⚠️  Linea {i+1} molto lunga ({len(line)} caratteri), verificare merge")
-            
-            # Mantieni la linea così com'è - la preservazione degli spazi è prioritaria
-            final_lines.append(line)
-        
-        return final_lines
 
     def get_file_extension(self, file_path):
         """Restituisce l'estensione del file"""
@@ -352,7 +256,7 @@ class ProjectRecreator:
             return False
         
         print("🔍 Analizzando il contenuto del PDF con PRESERVAZIONE SPAZI...")
-        print("🎯 GESTIONE AVANZATA RIGHE LUNGHE ATTIVATA")
+        print("🎯 ALGORITMO INTELLIGENTE: Unione senza spazi indesiderati")
         files_data = self.parse_files_from_pdf(pdf_text)
         
         if not files_data:
@@ -430,18 +334,6 @@ class ProjectRecreator:
             print(f"✅ Creato: {file_path}")
             print(f"   📊 Statistiche: {line_count} linee, {max_indent} spazi max, {avg_indent} spazi medi")
             print(f"   📏 Lunghezza max riga: {max_line_length} caratteri")
-            
-            # VERIFICA VISIVA della struttura per i primi file
-            if files_created <= 2:
-                print(f"   👀 ANTEPRIMA STRUTTURA:")
-                for j in range(min(10, len(lines))):
-                    line = lines[j]
-                    if line.strip():
-                        indent = len(line) - len(line.lstrip())
-                        indent_visual = "▸" * (indent // 4 + 1) if indent > 0 else "•"
-                        content_preview = line.strip()[:50]
-                        line_length_indicator = "📏" if len(line) > 100 else ""
-                        print(f"      {indent_visual} [{indent} spazi] {content_preview} {line_length_indicator}")
 
     def write_reconstruction_report(self, output_path, files_created, errors, files_data):
         """Scrive un report dettagliato della ricostruzione"""
@@ -496,13 +388,12 @@ TECNICA DI PRESERVAZIONE SPAZI:
 ✅ FORMATTAZIONE INTATTA: La formattazione del codice rimane identica
 ✅ SUPPORTO UNIVERSALE: Funziona con tutti i linguaggi di programmazione
 
-TECNICHE APPLICATE:
-------------------
-• Ricomposizione automatica righe lunghe divise
-• Preservazione esatta spazi e indentazione  
-• Unione intelligente continuazioni
-• Riconoscimento pattern di divisione PDF
-• Analisi semantica del codice per merge corretto
+ALGORITMO INTELLIGENTE:
+----------------------
+• Unione SENZA SPAZI per parole divise (end_of_file_ patterns -> end_of_file_patterns)
+• Riconoscimento contestuale operatori e parentesi
+• Preservazione struttura originale del codice
+• Gestione intelligente continuazioni
 
 """
 
